@@ -95,7 +95,7 @@ double getLaneChangeSafety(vector<vector<double>> sensor_fusion, int current_lan
     
     if (next_lane == laneFromD(d))
     {
-      double car_s_next = car_s + ((double)15.0 * 0.02 * car_v);
+      double car_s_next = car_s + ((double)prev_size * 0.02 * car_v);
       double ego_s_next = ego_s + ((double)prev_size * 0.02 * ego_v);
       
       if ((ego_s > car_s - SAFE_LANE_CHANGE_GAP || ego_s_next > car_s - SAFE_LANE_CHANGE_GAP) 
