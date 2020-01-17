@@ -8,7 +8,7 @@
 #include "helpers.h"
 #include "json.hpp"
 #include "spline.h"
-
+#include <cmath>
 
 
 // for convenience
@@ -105,6 +105,9 @@ int main() {
           json msgJson;
 
 
+
+
+
           /**
            * TODO: define a path made up of (x,y) points that the car will visit
            *   sequentially every .02 seconds
@@ -118,6 +121,7 @@ int main() {
           int fastest_lane = getFastestLane(sensor_fusion, car_s - 5.0, car_s + 30.0);
           
           int current_lane = laneFromD(car_d);
+          
           
           // Use the fastest lane to get the next lane from the current
           int fastest_lane_from_current;
@@ -135,24 +139,32 @@ int main() {
             fastest_lane_from_current = current_lane - 1;
           }
           
+          
+          
           double lane_change_safety = getLaneChangeSafety(sensor_fusion, current_lane, fastest_lane_from_current, car_s, car_speed, prev_size);
           
           //cout << lane_change_safety << " " << fastest_lane << " " << fastest_lane_from_current << endl;
           
-          // If safety above threshold then change lane
+          
+          // If safety above a threshold then change lane
           if (lane_change_safety > 0.9)
           {
             lane = fastest_lane_from_current;
           }
 
 
-          
+
+
+          // Check if there is a car in front of the ego vehcile and, if so,
+          // reduce the ego vehicle speed proporional to the speed difference
+          // between the two
           if (prev_size > 0)
           {
             car_s = end_path_s;
           }
 
           bool too_close = false;
+          double speed_diff = 0.0;
 
           // Check if the care is too close to the closest car in the same lane
           for(int i = 0; i < sensor_fusion.size(); i++)
@@ -172,13 +184,14 @@ int main() {
               {
                 too_close = true;
                 //targetSpeed = getFrontVehicleSpeed(sensor_fusion, car_s, lane);
+                speed_diff = std::abs(check_speed - car_speed) / 30.0;
               }
             }
           }
           
           if (too_close)
           {
-            ref_vel -= 0.224;
+            ref_vel -= 0.224 * speed_diff;
           }
           else if (ref_vel < target_speed)
           {
