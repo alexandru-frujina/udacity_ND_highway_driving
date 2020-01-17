@@ -17,6 +17,32 @@ Each waypoint in the list contains  [x,y,s,dx,dy] values. x and y are the waypoi
 
 The highway's waypoints loop around so the frenet s value, distance along the road, goes from 0 to 6945.554.
 
+
+## Implementation details
+
+The algorithm does the path planning by planning the following objectives:
+1. Reduce the speed when a vehicle with a lower speed is on the same lane as the ego vehicle proportional to the speed difference betwen the two.
+2. Find the lane with the fastest speed (an empty lane in front of the ego vehicle is represented by the maximum speed). In order to reduce jerk when changing between lanes a sequential change between lanes was implemented.
+3. When changing to a faster-moving lane check if the manouver is safe with respect to the vehicle in front as well as behind
+
+The objectives are implemented by the respective functions below:
+1. main.cpp, line 149
+2. my_helpers.h, getFastestLane()
+   By using the information from the sensor fusion module find the minimum speed on each lane between the ego vehicle and a predefined maximum range.
+3. my_helpers.h, getLaneChangeSafety()
+   Using the information from the sensor fusion module check if there is any overlap between the predicted space that will be occupied by the ego vehicle and any of the other vehicles
+
+Other objectives include:
+- path smoothing implememnted by using a spline library to generate intermediate points for following a certain trajectory
+- reduce path planning processing on each iteration by using the remaining points from the previous path and adding a maximum of 50 intermediate points for the car to follow
+
+The implementation was done in the following steps, each step adding more to the funtionality:
+1. Keep the same lane and do not collide with the vehicle in front
+2. Find the fastest lane and set is as the target lane even if collisions occur changes to the lane can be done
+3. Check if changing to the fastest lane collides with another vehicle on the road (sensor fusion)
+4. Change lanes sequentially so as to avoid jerk
+
+
 ## Basic Build Instructions
 
 1. Clone this repo.
